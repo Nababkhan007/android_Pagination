@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private NestedScrollView nestedScrollView;
-    int page = 0, limit = 2;
+    int page = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         init();
 
-        getDataFromAPI(page, limit);
+        getDataFromAPI(page);
 
         nestedScrollChangeListener();
     }
@@ -51,23 +51,24 @@ public class MainActivity extends AppCompatActivity {
                             v.getMeasuredHeight()) {
                         page++;
                         progressBar.setVisibility(View.VISIBLE);
-                        getDataFromAPI(page, limit);
+                        getDataFromAPI(page);
                     }
                 });
     }
 
-    private void getDataFromAPI(int page, int limit) {
-        if (page > limit) {
-            Toast.makeText(this, "That's all the data...", Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
-            return;
-        }
-
+    private void getDataFromAPI(int page) {
         String url = "https://reqres.in/api/users?page=" + page;
         RequestQueue queue = Volley.newRequestQueue(this);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
                 null, response -> {
             try {
+                int totalPage = response.getInt("total_pages");
+                if (page > totalPage) {
+                    Toast.makeText(this, "That's all the data...", Toast.LENGTH_SHORT)
+                            .show();
+                    progressBar.setVisibility(View.GONE);
+                    return;
+                }
                 JSONArray dataArray = response.getJSONArray("data");
 
                 for (int i = 0; i < dataArray.length(); i++) {
